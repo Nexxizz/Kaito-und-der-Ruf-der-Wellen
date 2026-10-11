@@ -1,4 +1,4 @@
-﻿/* Partikel-Effekte: Blasen-Spur, Gischt, Fontaene, Schaum, Stroemungswolke.
+/* Partikel-Effekte: Blasen-Spur, Gischt, Fontaene, Schaum, Stroemungswolke.
    Alles wird aus der Zeit t rekonstruiert (Geburtszeit + Zufall) -> deterministisch und seekbar. */
 const FX = (() => {
   const GRAV = 520;
@@ -10,7 +10,7 @@ const FX = (() => {
     { a: 7.5, b: 15.7, dt: 0.055, sp: 26, life: 4.5, tail: 1 },
     { a: Path.T_IN - 0.3, b: Path.T_IN + 1.6, dt: 0.012, sp: 230, life: 6, tail: 0 },
     { a: Path.T_IN + 1.6, b: 22.5, dt: 0.06, sp: 40, life: 4.5, tail: 1 },
-    { a: 22.5, b: 29.5, dt: 0.4, sp: 20, life: 5, tail: 1 },
+    { a: 22.5, b: 59.5, dt: 0.4, sp: 20, life: 5, tail: 1 },
   ];
 
   function bubbles(ctx, t) {
@@ -70,11 +70,19 @@ const FX = (() => {
     { a: 17.45, b: 19.3, n: 90, life: 2.2, mk: (k, tb) => { const b = Whale.blowhole(Path.whale(tb)); return { x: b.x, y: b.y, vx: (rnd(k, 23) - 0.5) * 120 + 30, vy: -(380 + rnd(k, 24) * 200), size: 22 + rnd(k, 25) * 22, mist: 1 }; } },
   ];
 
-  function spray(ctx, t) { if (t > Path.T_EM - 0.2 && t < 24) { ctx.globalCompositeOperation = 'lighter'; drops(ctx, t, SPRAY); drops(ctx, t, SPOUT); ctx.globalCompositeOperation = 'source-over'; } }
+  /* Szene 7: Kaito und seine Mutter blasen gemeinsam unter den Sternen */
+  const nightBlow = (who, a, b, sc) => {
+    const top = (k, tb) => { const w = Path.whale(tb), s = who ? Path.mother(tb, w) : w; return Whale.blowhole(s); };
+    SPOUT.push({ a, b, n: 90, life: 1.9, mk: (k, tb) => { const o = top(k, tb); return { x: o.x, y: o.y, vx: (rnd(k, 50 + who) - 0.5) * 100 * sc + 30, vy: -(380 + rnd(k, 51) * 200) * sc, size: 1.8 + rnd(k, 52) * 2.2 }; } });
+    SPOUT.push({ a, b, n: 60, life: 2.2, mk: (k, tb) => { const o = top(k, tb); return { x: o.x, y: o.y, vx: (rnd(k, 53) - 0.5) * 110 * sc + 30, vy: -(340 + rnd(k, 54) * 170) * sc, size: (20 + rnd(k, 55) * 20) * sc, mist: 1 }; } });
+  };
+  nightBlow(0, 55.2, 56.6, 1); nightBlow(1, 55.7, 57.3, 1.25);
+
+  function spray(ctx, t) { if ((t > Path.T_EM - 0.2 && t < 24) || (t > 54.8 && t < 59.5)) { ctx.globalCompositeOperation = 'lighter'; drops(ctx, t, SPRAY); drops(ctx, t, SPOUT); ctx.globalCompositeOperation = 'source-over'; } }
 
   /* Schaum + Ringe an der Oberflaeche */
   function foam(ctx, t) {
-    for (const e of [{ x: wEm.x, t0: Path.T_EM, s: 0.6 }, { x: wIn.x, t0: Path.T_IN, s: 1 }]) {
+    for (const e of [{ x: wEm.x, t0: Path.T_EM, s: 0.6 }, { x: wIn.x, t0: Path.T_IN, s: 1 }, { x: Path.raw(53).x, t0: 53, s: 0.5 }]) {
       const age = t - e.t0; if (age < -0.1 || age > 6) continue;
       const f = 1 - U.clamp(age / 6), grow = Math.min(age + 0.1, 3.5);
       for (let i = 0; i < 40; i++) {
@@ -104,5 +112,5 @@ const FX = (() => {
     }
   }
 
-  return { bubbles, spray, foam, puffs, events: [{ x: wEm.x, t0: Path.T_EM, amp: 16 }, { x: wIn.x, t0: Path.T_IN, amp: 34 }] };
+  return { bubbles, spray, foam, puffs, events: [{ x: wEm.x, t0: Path.T_EM, amp: 16 }, { x: wIn.x, t0: Path.T_IN, amp: 34 }, { x: Path.raw(52.8).x, t0: 52.8, amp: 12 }] };
 })();

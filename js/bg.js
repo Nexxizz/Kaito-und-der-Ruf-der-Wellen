@@ -1,4 +1,4 @@
-﻿/* Hintergrund: Himmel/Sonnenuntergang, Wasserkoerper, Oberflaeche, God Rays */
+/* Hintergrund: Himmel/Sonnenuntergang, Wasserkoerper, Oberflaeche, God Rays */
 const BG = (() => {
   const WATER = [[0, [70, 222, 214]], [250, [36, 176, 204]], [700, [16, 120, 180]], [1300, [10, 78, 142]], [2000, [6, 46, 102]], [2700, [3, 20, 56]]];
   const wave = (X, t) => 8 * Math.sin(X * 0.008 + t * 1.3) + 5 * Math.sin(X * 0.019 - t * 1.9) + 3 * Math.sin(X * 0.041 + t * 2.7);
@@ -18,54 +18,7 @@ const BG = (() => {
   function waterColor(d, warm) {
     let i = 0; while (i < WATER.length - 2 && d > WATER[i + 1][0]) i++;
     const a = WATER[i], b = WATER[i + 1], c = U.mixc(a[1], b[1], U.clamp((d - a[0]) / (b[0] - a[0])));
-    return U.mixc(c, [255, 150, 120], warm * 0.5 * Math.exp(-d / 450));
-  }
-
-  function sky(ctx, t) {
-    const y0 = sy(0); if (y0 < 0) return;
-    const g = ctx.createLinearGradient(0, sy(-1600), 0, sy(-80));
-    [[0, [27, 23, 69]], [0.4, [91, 58, 142]], [0.72, [200, 82, 127]], [0.9, [255, 143, 95]], [1, [255, 201, 140]]]
-      .forEach(([o, c]) => g.addColorStop(o, U.css(c)));
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, Math.min(H, y0 + 4));
-
-    // Sonne + Glut
-    const sunX = 1380 - Cam.x * 0.04, sunY = sy(-150, 0.92);
-    ctx.globalCompositeOperation = 'lighter';
-    const rg = ctx.createRadialGradient(sunX, sunY, 40, sunX, sunY, 780);
-    rg.addColorStop(0, 'rgba(255,170,90,0.6)'); rg.addColorStop(0.4, 'rgba(255,110,110,0.18)'); rg.addColorStop(1, 'rgba(255,80,120,0)');
-    ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
-    ctx.globalCompositeOperation = 'source-over';
-    const sg = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 125);
-    sg.addColorStop(0, '#fff6d8'); sg.addColorStop(0.8, '#ffd08a'); sg.addColorStop(1, 'rgba(255,190,120,0.9)');
-    ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(sunX, sunY, 118, 0, 7); ctx.fill();
-
-    // Wolkenbaender (3 Parallax-Ebenen)
-    for (let i = 0; i < 9; i++) {
-      const p = 0.12 + (i % 3) * 0.1, Y = -520 + (i % 3) * 120 + U.h(i) * 90;
-      const X = U.mod(U.h(i + 5) * 3600 + t * (6 + i * 1.7) - Cam.x * p, 3600) - 800, yy = sy(Y, 0.9 + p * 0.3);
-      const w = 340 + U.h(i + 9) * 260;
-      for (let k = 0; k < 3; k++) {
-        const lit = k === 0 ? [255, 190, 150] : k === 1 ? [226, 112, 140] : [124, 66, 130];
-        ctx.fillStyle = U.css(lit, 0.45 + 0.1 * (i % 3));
-        ctx.beginPath(); ctx.ellipse(X + k * 20, yy + k * 11, w * (1 - k * 0.12), 20 - k * 3.5 + (i % 3) * 3, 0, 0, 7); ctx.fill();
-      }
-    }
-    // ferne Insel
-    ctx.fillStyle = 'rgba(86,42,100,0.85)'; const hy = sy(-62), ix = 380 - Cam.x * 0.08;
-    ctx.beginPath(); ctx.moveTo(ix - 200, hy); ctx.quadraticCurveTo(ix - 60, hy - 52, ix + 20, hy - 30); ctx.quadraticCurveTo(ix + 90, hy - 62, ix + 220, hy); ctx.fill();
-
-    // Horizont-Meer + Glitzerpfad
-    const hg = ctx.createLinearGradient(0, sy(-70), 0, sy(4));
-    hg.addColorStop(0, '#ffb98a'); hg.addColorStop(0.5, '#d86a7c'); hg.addColorStop(1, '#6a3b7c');
-    ctx.fillStyle = hg; ctx.fillRect(0, sy(-70), W, sy(4) - sy(-70));
-    ctx.fillStyle = 'rgba(255,236,190,0.9)';
-    for (let i = 0; i < 70; i++) {
-      const yy = sy(-70 + (i / 70) * 68), spread = 12 + (i / 70) * 130;
-      const xx = sunX + (U.h(i * 3.1) - 0.5) * spread * 2 * (0.6 + 0.4 * Math.sin(t * 1.2 + i));
-      ctx.globalAlpha = 0.25 + 0.5 * Math.abs(Math.sin(t * 2 + i * 1.7));
-      ctx.fillRect(xx, yy, 8 + (i / 70) * 38, 2);
-    }
-    ctx.globalAlpha = 1;
+    return U.mixc(U.mixc(c, [255, 150, 120], warm * 0.5 * Math.exp(-d / 450)), [4, 22, 62], (BG.night || 0) * 0.55);
   }
 
   function surfacePath(ctx, t, bottomY) {
@@ -139,5 +92,5 @@ const BG = (() => {
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   }
 
-  return { sky, water, rays, surfaceFront, surfY, setEvents, waterColor };
+  return { water, rays, surfaceFront, surfY, setEvents, waterColor };
 })();

@@ -3,7 +3,7 @@
 const puppeteer = require('puppeteer-core'), { spawn } = require('child_process'), fs = require('fs'), path = require('path');
 const ffmpeg = require('ffmpeg-static'), { start } = require('./serve');
 const BROWSER = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(fs.existsSync);
-const FPS = 60, DUR = 30;
+const FPS = 60, DUR = 60;
 
 (async () => {
   fs.mkdirSync('out', { recursive: true });

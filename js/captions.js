@@ -4,7 +4,12 @@ const Captions = (() => {
     { a: 0.9, b: 6.7, text: 'Kaito war noch klein – und das weite Meer schien endlos tief.' },
     { a: 7.7, b: 14.6, text: 'Doch das Licht an der Oberfläche rief ihn.' },
     { a: 15.9, b: 22.6, text: 'Zum ersten Mal berührte er die Welt über den Wellen.' },
-    { a: 23.6, b: 28.6, text: 'Der Ozean war nicht mehr dunkel. Er war voller Wunder.' },
+    { a: 23.6, b: 29.8, text: 'Der Ozean war nicht mehr dunkel. Er war voller Wunder.' },
+    { a: 30.6, b: 36.2, text: 'Hier unten wartete eine Welt voller Lichter.' },
+    { a: 37.0, b: 42.4, text: 'Quallen tanzten, Schildkröten zogen ruhig ihre Bahnen.' },
+    { a: 43.0, b: 47.8, text: 'Seine Mutter sang das alte Lied der Wellen.' },
+    { a: 48.4, b: 53.0, text: 'Und Kaito stimmte zum ersten Mal mit ein.' },
+    { a: 53.6, b: 58.4, text: 'Gemeinsam trugen sie das Licht hinauf zu den Sternen.' },
   ];
   const FONT = '300 54px "Segoe UI Light","Segoe UI","Helvetica Neue",Arial,sans-serif';
 

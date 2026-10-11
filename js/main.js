@@ -1,16 +1,16 @@
 /* Komposition aller Ebenen + Player + Video-Aufnahme */
 const canvas = document.getElementById('stage');
 const ctx = canvas.getContext('2d');
-const DURATION = 30, FPS = 60;
+const DURATION = 60, FPS = 60;
 
 function renderFrame(t) {
   t = U.clamp(t, 0, DURATION);
   const ws = Path.whale(t); Path.camera(t, ws);
   const mo = Path.mother(t, ws);
-  BG.setEvents(FX.events);
-  const warm = 0.65 * U.smooth(14.5, 17.5, t), wonder = U.smooth(22, 27, t);
+  BG.setEvents(FX.events); BG.night = U.smooth(42, 52, t);
+  const warm = 0.65 * U.smooth(14.5, 17.5, t) * (1 - U.smooth(38, 48, t)), wonder = U.smooth(22, 27, t);
   const fog = ws.y < 0 ? 0 : U.clamp(ws.y / 3000) * 0.65;
-  const rayI = (0.5 + 0.95 * U.smooth(2, 5.5, t)) * (1 + 0.6 * wonder);
+  const rayI = (0.5 + 0.95 * U.smooth(2, 5.5, t)) * (1 + 0.6 * wonder) * (1 - 0.7 * BG.night);
 
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   ctx.clearRect(0, 0, W, H);
@@ -23,15 +23,19 @@ function renderFrame(t) {
   Life.seabed(ctx, t, 'mid');
   BG.rays(ctx, t, rayI, warm);
   Life.streams(ctx, t, wonder * 0.8 + 0.2 * U.smooth(16, 22, t));
-  if (mo) Whale.draw(ctx, { ...mo, x: sx(mo.x), y: sy(mo.y), fog: 0.6, fogCol: [6, 40, 78], warm: 0 });
+  Creatures.far(ctx, t, ws);
+  if (mo) Whale.draw(ctx, { ...mo, x: sx(mo.x), y: sy(mo.y), fog: 0.6 - 0.3 * U.smooth(50, 55, t), fogCol: [6, 40, 78], warm: 0 });
   Life.dust(ctx, t, 0.7, 60, 6, 0.5, 31);
 
   // --- Mittelgrund
   Life.fish(ctx, t, ws, 0);
+  Creatures.jellies(ctx, t);
+  Creatures.mid(ctx, t, ws);
   FX.puffs(ctx, t);
   Whale.draw(ctx, { ...ws, x: sx(ws.x), y: sy(ws.y), fog, warm: ws.y < 120 ? warm : warm * 0.3 });
   Life.fish(ctx, t, ws, 1);
   FX.bubbles(ctx, t);
+  Creatures.song(ctx, t, ws, mo);
 
   // --- Vordergrund
   BG.surfaceFront(ctx, t, warm);
@@ -47,7 +51,7 @@ function renderFrame(t) {
   vg.addColorStop(0, 'rgba(0,8,24,0)'); vg.addColorStop(1, 'rgba(0,8,24,0.5)');
   ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
   Captions.draw(ctx, t);
-  const black = Math.max(1 - U.smooth(0, 1.1, t), U.smooth(28.2, 29.95, t));
+  const black = Math.max(1 - U.smooth(0, 1.1, t), U.smooth(58.6, 59.95, t));
   if (black > 0.001) { ctx.fillStyle = `rgba(0,0,0,${black})`; ctx.fillRect(0, 0, W, H); }
 }
 

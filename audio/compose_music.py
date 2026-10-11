@@ -1,6 +1,6 @@
 """
 Kaito und der Ruf der Wellen - Originalsoundtrack
-Komponiert per additiver Synthese (nur numpy + wave):
+Komponiert (60 s) per additiver Synthese (nur numpy + wave):
   * weiche Pads (verstimmte Sinus-Schichten)  * Klavier-artige Anschlaege
   * Glockenspiel-Motiv fuer Kaito             * gefilterte Meeresrauschen-Wellen
   * Wasser-Splash zu den Durchbruch-Momenten  * synthetischer Hall (FFT-Faltung)
@@ -11,7 +11,7 @@ import wave
 import numpy as np
 
 SR = 44100
-DUR = 30.0
+DUR = 60.0
 N = int(SR * DUR)
 rng = np.random.default_rng(7)
 L = np.zeros(N)
@@ -94,8 +94,17 @@ CHORDS = [
     (43, [55, 59, 62, 66, 73]),   # Gmaj7#11
     (35, [59, 62, 66, 69, 74]),   # Bm7      Heimkehr
     (38, [57, 62, 66, 69, 73]),   # Dmaj9
+    # --- Teil 2 (30-60 s): Wunder der Tiefe, Walgesang, Sternennacht
+    (43, [59, 62, 66, 69, 74]),   # Gmaj9    Wunder
+    (40, [55, 59, 62, 66, 71]),   # Em9
+    (38, [57, 62, 66, 69, 73]),   # Dmaj9    Gesang
+    (35, [59, 62, 66, 69, 73]),   # Bm9
+    (43, [55, 59, 62, 66, 69]),   # Gmaj7
+    (45, [57, 61, 64, 67, 71]),   # A9sus    Aufstieg
+    (38, [57, 62, 66, 69, 73]),   # Dmaj9    Sterne
+    (38, [57, 62, 66, 69, 74]),   # Dadd9    Ausklang
 ]
-CH = DUR / len(CHORDS)
+CH = 3.75
 
 for i, (bass, pad) in enumerate(CHORDS):
     t0 = i * CH
@@ -105,7 +114,7 @@ for i, (bass, pad) in enumerate(CHORDS):
     # Arpeggio je nach Szene
     t = t0
     notes = [m + 12 for m in pad] + [pad[2] + 24]
-    step = 1.25 if t0 < 7 else (0.4167 if t0 < 15 else (0.5 if t0 < 23 else 0.8333))
+    step = (1.25 if t0 < 7 else (0.4167 if t0 < 15 else (0.5 if t0 < 23 else (0.8333 if t0 < 41 else (0.4167 if t0 < 52 else 1.0)))))
     j = 0
     while t < t0 + CH - 0.01:
         m = notes[[0, 2, 1, 3, 2, 4, 3, 5][j % 8] % len(notes)]
@@ -124,11 +133,30 @@ MELODY = [
     (18.9, 83), (19.6, 81), (20.3, 78), (21.1, 74), (21.7, 78),
     (23.0, 74), (23.9, 73), (24.6, 71), (25.4, 74),
     (26.6, 78), (27.6, 74), (28.4, 74),
+    # Szene 5 - Wunder der Tiefe
+    (31.0, 78), (32.6, 81), (34.2, 83), (35.9, 81), (37.5, 78), (39.2, 74),
+    # Szene 7 - Sternennacht
+    (52.0, 74), (53.5, 78), (55.0, 81), (56.6, 85), (58.0, 81),
 ]
 for tm, m in MELODY:
     add(piano_note(hz(m), 0.16, 5.0), tm, 0.55)
     add(bell_note(hz(m + 12), 0.03), tm + 0.01, 0.7)
 
+# Walgesang (Szene 6): gleitende Toene mit Vibrato, Mutter tief - Kaito hoch
+def whale_song(f0, f1, dur, amp):
+    n = int((dur + 1.5) * SR)
+    t = np.arange(n) / SR
+    f = f0 + (f1 - f0) * np.clip(t / dur, 0, 1) ** 1.5
+    f = f * (1 + 0.006 * np.sin(2 * np.pi * 5.2 * t) * np.clip(t / 1.2, 0, 1))
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    sig = np.sin(ph) + 0.35 * np.sin(2 * ph) + 0.12 * np.sin(3 * ph)
+    env = np.minimum(1, t / 0.9) ** 2 * np.clip((dur + 1.5 - t) / 1.4, 0, 1) ** 2
+    return sig * env * amp
+
+for tm, a, b, d in [(41.5, 196.0, 246.9, 3.0), (44.3, 246.9, 220.0, 2.6), (47.0, 220.0, 329.6, 3.0), (50.3, 293.7, 293.7, 2.4)]:
+    add(whale_song(a, b, d, 0.11), tm, 0.4)
+for tm, a, b, d in [(45.8, 440.0, 523.3, 1.6), (48.4, 523.3, 587.3, 1.8), (50.9, 587.3, 440.0, 2.0)]:
+    add(whale_song(a, b, d, 0.07), tm, 0.7)
 # Aufstiegs-Schimmer (14.4 - 15.7)
 tt = np.arange(int(1.4 * SR)) / SR
 sweep = np.sin(2 * np.pi * (500 * tt + 900 * tt ** 2)) * (tt / 1.4) ** 2 * np.exp(-((tt - 1.4) ** 2) * 0)
@@ -164,6 +192,9 @@ noise_burst(T_EMERGE - 0.05, 2.4, 0.16, 400, 5000, 0.45)
 noise_burst(T_ENTER - 0.05, 3.2, 0.22, 150, 3500, 0.6)
 add(bell_note(hz(93), 0.05), T_EMERGE + 0.1, 0.4)
 add(bell_note(hz(86), 0.05), T_ENTER + 0.4, 0.6)
+noise_burst(53.1, 2.6, 0.07, 300, 3500, 0.5)   # sanftes Auftauchen
+noise_burst(55.25, 1.2, 0.05, 1500, 6000, 0.45)  # Fontaene Kaito
+noise_burst(55.8, 1.6, 0.07, 800, 5000, 0.6)    # Fontaene Mutter
 
 # ------------------------------------------------------------------ Master
 fade = np.minimum(1, tN / 1.5) * np.clip((DUR - tN) / 2.6, 0, 1) ** 1.5

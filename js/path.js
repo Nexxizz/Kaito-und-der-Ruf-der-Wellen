@@ -26,6 +26,10 @@ const Path = (() => {
       const a = t - T_IN;
       y = DEEP * U.easeOutCubic(a / DIVE) + 10 * Math.sin(Math.max(0, a - DIVE) * 0.9) * sm(0, 1.5, a - DIVE);
       x = XIN + 70 * a + 170 * 1.2 * (1 - Math.exp(-a / 1.2));
+      // Szene 7: gemeinsamer, ruhiger Aufstieg zur Oberflaeche (47-55 s)
+      const u = U.clamp((t - 44) / 3), ex = 50 * 3 * (u * u * u - u * u * u * u / 2) + (t > 47 ? 50 * (t - 47) : 0);
+      x += ex * (t > 44 ? 1 : 0);
+      y = U.lerp(y, 40 + 8 * Math.sin(t * 0.8), sm(47, 55, t));
     }
     return { x, y };
   }
@@ -33,7 +37,7 @@ const Path = (() => {
   /* Schwanzschlag-Phase als kumulierte Tabelle */
   const PH = [0], PS = 1 / 120;
   const omega = t => 2.6 + 4.4 * sm(6, 9, t) - 3.4 * sm(16, 20, t) - 0.6 * sm(22, 24, t);
-  for (let i = 1; i <= 30 * 120 + 2; i++) PH.push(PH[i - 1] + omega(i * PS) * PS);
+  for (let i = 1; i <= 60 * 120 + 2; i++) PH.push(PH[i - 1] + omega(i * PS) * PS);
   const phase = t => { const f = t / PS, i = Math.min(PH.length - 2, Math.floor(f)); return U.lerp(PH[i], PH[i + 1], f - i); };
   const power = t => 0.28 + 0.72 * sm(6.5, 9, t) - 0.45 * sm(15.8, 19, t) + 0.1 * sm(19.5, 21, t) - 0.25 * sm(22, 24, t);
 
@@ -59,7 +63,7 @@ const Path = (() => {
     if (t < 22) return null;
     const p = U.clamp((t - 22.5) / 6.5), e = p * p * (3 - 2 * p);
     return {
-      x: ws.x + U.lerp(-1450, 330, e), y: ws.y - 120 + 14 * Math.sin(t * 0.5),
+      x: ws.x + U.lerp(-1450, 330, e), y: ws.y - 120 + 100 * sm(48, 55, t) + 14 * Math.sin(t * 0.5),
       angle: 0.02 + 0.03 * Math.sin(t * 0.4), scale: 2.3, phase: phase(t) * 0.7 + 1.3, power: 0.32,
     };
   }
